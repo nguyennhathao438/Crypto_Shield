@@ -14,7 +14,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity){
         return httpSecurity.cors(Customizer.withDefaults())
-                .authorizeHttpRequests(request->request.anyRequest().authenticated()).build();
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(request->request.anyRequest().permitAll()).build();
     }
     @Bean
     PasswordEncoder passwordEncoder() {

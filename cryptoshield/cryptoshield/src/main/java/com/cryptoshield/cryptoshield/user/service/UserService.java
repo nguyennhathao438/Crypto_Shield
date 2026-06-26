@@ -132,7 +132,7 @@ public class UserService {
     }
 
     public String generateToken(User user){
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512); // Định nghĩa thuật toán trong Header
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256); // Định nghĩa thuật toán trong Header
         JWTClaimsSet jwtClaimSet = new JWTClaimsSet.Builder()
                 .subject(user.getEmail())// email người dùng
                 .issuer("cryptoshield.com")// ai phát hành ??
