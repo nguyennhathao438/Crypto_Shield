@@ -1,5 +1,6 @@
 package com.crypto_shield.wallet_service.service;
 
+import com.crypto_shield.wallet_service.dto.CheckBalanceResponse;
 import com.crypto_shield.wallet_service.dto.WalletResponse;
 import com.crypto_shield.wallet_service.entity.Wallet;
 import com.crypto_shield.wallet_service.exception.AppException;
@@ -37,5 +38,17 @@ public class WalletService {
                 .unrealizedPnl(wallet.getUnrealizedPnl())
                 .build();
     }
-
+    public CheckBalanceResponse checkBalance(UUID user_Id, BigDecimal margin){
+        Wallet wallet = walletReposiory.findByUserId(user_Id).orElseThrow(()->new AppException(ErrorCode.HAS_NOT_WALLET));
+        if(wallet.getBalance().compareTo(margin) <0){
+            return CheckBalanceResponse.builder()
+                    .success(false)
+                    .message("Insufficient balance")
+                    .build();
+        }
+        return CheckBalanceResponse.builder()
+                .success(true)
+                .message("enough balance")
+                .build();
+    }
 }

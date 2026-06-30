@@ -1,8 +1,8 @@
 spring:
   application:
-    name: wallet-service
+    name: order-service
   datasource:
-    url: jdbc:postgresql://localhost:5433/wallet_db
+    url: jdbc:postgresql://localhost:5433/order_db
     username: postgres
     password: 123456
   jpa:
@@ -13,4 +13,4 @@ spring:
       hibernate:
         format_sql: true
 server:
-  port: 8081
+  port: 8082

@@ -8,7 +8,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class WalletRequest {
-    String user_id;
-
+public class CheckBalanceResponse {
+    boolean success;
+    String message;
 }
