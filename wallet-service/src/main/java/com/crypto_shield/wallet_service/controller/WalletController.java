@@ -21,22 +21,22 @@ public class WalletController {
     WalletService walletService;
     @PostMapping("/{userId}")
     public ApiResponse<WalletResponse> createWallet(
-            @PathVariable UUID userId) {
+            @PathVariable("userId") UUID userId) {
         return ApiResponse.<WalletResponse>builder()
                 .result(walletService.createWallet(userId))
                 .build();
     }
     @GetMapping("/users/{userId}")
     public ApiResponse<WalletResponse> getWalletByUserId(
-            @PathVariable UUID userId) {
+            @PathVariable("userId") UUID userId) {
         return ApiResponse.<WalletResponse>builder()
                 .result(walletService.getWalletByUser(userId))
                 .build();
     }
     @GetMapping("/balance/{userId}")
     public ApiResponse<CheckBalanceResponse> checkBalance(
-            @PathVariable UUID userId,
-            @RequestParam BigDecimal margin
+            @PathVariable("userId") UUID userId,
+            @RequestParam("margin") BigDecimal margin
     ) {
         return ApiResponse.<CheckBalanceResponse>builder()
                 .result(walletService.checkBalance(userId,margin))

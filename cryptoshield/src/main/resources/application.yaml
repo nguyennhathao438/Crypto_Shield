@@ -1,8 +1,8 @@
+server:
+  port: 8080
 spring:
-  config:
-    import: optional:file:.env[.properties]
   application:
-    name: cryptoshield
+    name: user-service
   datasource:
     url: jdbc:postgresql://localhost:5433/crypto_db
     username: postgres
@@ -16,4 +16,9 @@ spring:
         format_sql: true
 
 jwt:
-  signerKey: ${signerKey}
+  signerKey: rykFmaUEc8gl79dPCjSQTQRGfdpR68aehBLWrr1FmOA
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/

@@ -21,7 +21,7 @@ public class OrderController {
     OrderService orderService;
     @PostMapping("/{userId}")
     ResponseEntity<ApiResponse<OrderResponse>> takeOrder(
-            @PathVariable UUID userId,
+            @PathVariable("userId") UUID userId,
             @RequestBody @Valid OrderRequest orderRequest){
         return ResponseEntity.ok().body(ApiResponse.<OrderResponse>builder()
                 .result(orderService.takeOrder(userId,orderRequest))
