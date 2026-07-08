@@ -12,8 +12,12 @@ import com.cryptoshield.order_service.exception.AppException;
 import com.cryptoshield.order_service.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.UUID;
 
@@ -22,18 +26,24 @@ public class OrderService {
     @Autowired
     OrderRepository orderRepository;
     @Autowired
-    WebClient webClient;
+    RestTemplate restTemplate;
+
     public OrderResponse takeOrder(UUID userId, OrderRequest request){
-        ApiResponse<CheckBalanceResponse> response =
-                webClient.get()
-                        .uri(uriBuilder -> uriBuilder
-                                .path("/internal/wallets/balance/{userId}")
-                                .queryParam("margin", request.getMargin())
-                                .build(userId))
-                        .retrieve()
-                        .bodyToMono(new ParameterizedTypeReference<
-                                                        ApiResponse<CheckBalanceResponse>>() {})
-                        .block();
+        String url = UriComponentsBuilder
+                .fromUriString("http://wallet-service/internal/wallets/balance/{userId}")
+                .queryParam("margin", request.getMargin())
+                .buildAndExpand(userId)
+                .toUriString();
+
+        ResponseEntity<ApiResponse<CheckBalanceResponse>> responseEntity =
+                restTemplate.exchange(
+                        url,
+                        HttpMethod.GET,
+                        null,
+                        new ParameterizedTypeReference<ApiResponse<CheckBalanceResponse>>() {}
+                );
+
+        ApiResponse<CheckBalanceResponse> response = responseEntity.getBody();
 
         if(!response.getResult().isSuccess()){
             throw new AppException(ErrorCode.INSUFFICIENT_BALANCE);

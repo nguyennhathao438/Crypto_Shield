@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+
+  discovery-service:
+    build: ./discovery-service
+    ports:
+      - "8761:8761"
+
+  user-service:
+    build: ./user-service
+    depends_on:
+      - discovery-service
+
+  wallet-service:
+    build: ./wallet-service
+    depends_on:
+      - discovery-service
+
+  order-service:
+    build: ./order-service
+    depends_on:
+      - discovery-service

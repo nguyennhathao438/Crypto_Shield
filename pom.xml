@@ -8,6 +8,7 @@
 
     <modules>
         <module>discovery-server</module>
+        <module>api-gateway</module>
         <module>cryptoshield</module>
         <module>wallet-service</module>
         <module>order-service</module>
