@@ -118,6 +118,13 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
 				<configuration>
 					<excludes>
 						<exclude>
@@ -163,8 +170,8 @@
 					</execution>
 				</executions>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
+                    <source>26</source>
+                    <target>26</target>
                 </configuration>
             </plugin>
 		</plugins>

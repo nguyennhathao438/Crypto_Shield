@@ -22,9 +22,20 @@ public class HeaderMapRequestWrapper extends HttpServletRequestWrapper {
         String value = customHeaders.get(name);
         return value != null ? value : super.getHeader(name);
     }
+
+    @Override
+    public Enumeration<String> getHeaders(String name) {
+        if (customHeaders.containsKey(name)) {
+            return Collections.enumeration(List.of(customHeaders.get(name)));
+        }
+        return super.getHeaders(name);
+    }
+
     @Override
     public Enumeration<String> getHeaderNames() {
         List<String> names = Collections.list(super.getHeaderNames());
+        // Tránh trùng tên nếu request gốc vô tình đã có header cùng tên
+        names.removeIf(customHeaders::containsKey);
         names.addAll(customHeaders.keySet());
         return Collections.enumeration(names);
     }

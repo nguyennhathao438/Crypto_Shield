@@ -1,12 +1,12 @@
 server:
-  port: 8081
+  port: 8080
 spring:
   application:
     name: user-service
   datasource:
-    url: jdbc:postgresql://localhost:5433/crypto_db
-    username: postgres
-    password: 123456
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/cs_user_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -16,9 +16,9 @@ spring:
         format_sql: true
 
 jwt:
-  signerKey: rykFmaUEc8gl79dPCjSQTQRGfdpR68aehBLWrr1FmOA
+  signerKey: ${JWT_SIGNER_KEY}
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka}

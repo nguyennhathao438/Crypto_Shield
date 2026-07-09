@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -23,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Value("${jwt.signerKey}")
@@ -44,7 +46,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-
+        System.out.println(">>> JwtAuthFilter running for: " + path);
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing token");
@@ -73,7 +75,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token revoked");
                 return;
             }
+            String email = signedJWT.getJWTClaimsSet().getSubject();
 
+            System.out.println(">>> verify result: " + signedJWT.verify(verifier));
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(email, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
             // Forward thông tin user xuống service qua header — dùng wrapper để thêm header
             HttpServletRequest mutatedRequest = new HeaderMapRequestWrapper(request,
                     Map.of("X-User-Email", signedJWT.getJWTClaimsSet().getSubject()));
