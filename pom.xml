@@ -12,6 +12,7 @@
         <module>cryptoshield</module>
         <module>wallet-service</module>
         <module>order-service</module>
+        <module>market-data-service</module>
     </modules>
     <properties>
         <java.version>26</java.version>

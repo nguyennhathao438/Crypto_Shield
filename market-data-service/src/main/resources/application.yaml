@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: market-data-service
+server:
+  port: 8080
+
+binance:
+  rest-base-url: https://api.binance.com
+  ws-base-url: wss://fstream.binancefuture.com/ws
