@@ -1,9 +1,9 @@
 package com.crypto_shield.market_data_service.service;
 
+import com.crypto_shield.market_data_service.dto.PriceResponse;
 import io.netty.resolver.DefaultAddressResolverGroup;
 import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +12,7 @@ import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.netty.http.client.HttpClient;
@@ -29,9 +30,10 @@ import java.util.concurrent.atomic.AtomicReference;
 @Slf4j
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class StreamPriceService {
+public class PriceService {
     @Value("${binance.ws-base-url}")
     String wsUrl;
+    //Khởi tạo kết nối , láy cơ ch resolver DNS mặc định của JDK
     final WebSocketClient wsClient = new ReactorNettyWebSocketClient(
             HttpClient.create()
                     .resolver(DefaultAddressResolverGroup.INSTANCE)
@@ -41,12 +43,28 @@ public class StreamPriceService {
     final ObjectMapper mapper = new ObjectMapper();
 
     final Set<String> subscribedSymbols = ConcurrentHashMap.newKeySet();
+    // Giong kdl int nhung ho tro da luong
     final AtomicInteger requestIdCounter = new AtomicInteger(1);
 
+    //Giu doi tuong session hien tai
     final AtomicReference<WebSocketSession> currentSession = new AtomicReference<>();
+    /**
+     * Queue Reactive dùng để gửi lệnh SUBSCRIBE/UNSUBSCRIBE tới Binance.
+     * Mọi request sẽ được tryEmitNext() đưa vào buffer,
+     * session.send() sẽ lấy từng request trong buffer để gửi.
+     *
+     * Producer : sendSubscribeCommand()
+     * Consumer : session.send()
+     * - many(): có thể emit (đẩy) nhiều message liên tục.
+     *  - unicast(): chỉ có 1 consumer được phép đọc (session.send()).
+     *  - onBackpressureBuffer():
+     *    nếu producer tạo message nhanh hơn tốc độ gửi,
+     *    các message sẽ được lưu tạm vào buffer, không bị mất.
+     */
     final Sinks.Many<String> outboundSink = Sinks.many().unicast().onBackpressureBuffer();
 
-
+    final ConcurrentHashMap<String, Sinks.Many<PriceResponse>> priceSinks = new ConcurrentHashMap<>();
+    final ConcurrentHashMap<String, AtomicInteger> subscriberCounts = new ConcurrentHashMap<>();
     @PostConstruct
     public void connect() {
         wsClient.execute(URI.create(wsUrl), session -> {
@@ -94,6 +112,11 @@ public class StreamPriceService {
 
                 latestPrices.put(symbol, price);
                 latestTimestamps.put(symbol, ts);
+                log.info("Giá mới: {} = {}", symbol, price);
+                Sinks.Many<PriceResponse> sink = priceSinks.get(symbol);
+                if (sink != null) {
+                    sink.tryEmitNext(new PriceResponse(symbol, price, ts));
+                }
             }
         } catch (Exception e) {
             log.error("Parse message lỗi: {}", e.getMessage());
@@ -143,5 +166,36 @@ public class StreamPriceService {
 
     public boolean hasData(String symbol) {
         return latestPrices.containsKey(symbol.toUpperCase());
+    }
+    public Flux<PriceResponse> streamPrice(String symbol) {
+        String upper = symbol.toUpperCase();
+        subscribe(upper); // đảm bảo đã subscribe tới Binance
+        subscriberCounts.computeIfAbsent(upper, s -> new AtomicInteger(0))
+                .incrementAndGet();
+
+        Sinks.Many<PriceResponse> sink = priceSinks.computeIfAbsent(upper,
+                s -> Sinks.many().multicast().onBackpressureBuffer());
+
+        return sink.asFlux().doFinally(signalType -> onClientDisconnect(upper));
+    }
+    private void onClientDisconnect(String symbol) {
+        AtomicInteger count = subscriberCounts.get(symbol);
+        if (count == null) return;
+
+        int remaining = count.decrementAndGet();
+        log.info("Client rời {}, còn lại {} subscriber", symbol, remaining);
+
+        if (remaining <= 0) {
+            // hết người theo dõi -> unsubscribe khỏi Binance và dọn dẹp toàn bộ state
+            if (subscribedSymbols.remove(symbol)) {
+                sendSubscribeCommand(symbol.toLowerCase() + "@ticker", "UNSUBSCRIBE");
+            }
+            latestPrices.remove(symbol);
+            latestTimestamps.remove(symbol);
+            priceSinks.remove(symbol);
+            subscriberCounts.remove(symbol);
+
+            log.info("Đã loại {} khỏi latestPrices/latestTimestamps (hết subscriber)", symbol);
+        }
     }
 }

@@ -1,12 +1,14 @@
 package com.crypto_shield.market_data_service.controller;
 
 import com.crypto_shield.market_data_service.dto.PriceResponse;
-import com.crypto_shield.market_data_service.service.StreamPriceService;
+import com.crypto_shield.market_data_service.service.PriceService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
@@ -15,7 +17,7 @@ import java.time.Duration;
 @RestController
 @RequiredArgsConstructor
 public class PriceController {
-    private final StreamPriceService streamPriceService;
+    private final PriceService streamPriceService;
     @GetMapping("/api/price/{type}")
     public Mono<ResponseEntity<PriceResponse>> getCurrentPrice(@PathVariable("type") String type) {
         String symbol = type.toUpperCase() + "USDT";
@@ -36,5 +38,10 @@ public class PriceController {
                 .retryWhen(Retry.fixedDelay(20, Duration.ofMillis(200))) // đợi tối đa ~4s cho lần subscribe đầu
                 .onErrorResume(e -> Mono.just(ResponseEntity.status(202)
                         .body(new PriceResponse(symbol, -1, 0))));
+    }
+    @GetMapping(value = "/api/price/{type}/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<PriceResponse> streamPrice(@PathVariable("type") String type) {
+        String symbol = type.toUpperCase() + "USDT";
+        return streamPriceService.streamPrice(symbol);
     }
 }
