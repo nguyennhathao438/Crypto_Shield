@@ -66,8 +66,18 @@ services:
       SPRING_DATA_REDIS_PORT: 6379
       JWT_SIGNER_KEY: ${JWT_SIGNER_KEY}
     depends_on:
-      - discovery-service
-      - redis
+      discovery-service:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      user-service:
+        condition: service_started
+      wallet-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      market-data-service:
+        condition: service_started
     networks:
       - backend
 
@@ -86,9 +96,12 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
       JWT_SIGNER_KEY: ${JWT_SIGNER_KEY}
     depends_on:
-      - postgres
-      - redis
-      - discovery-service
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      discovery-service:
+        condition: service_healthy
     networks:
       - backend
 
@@ -106,8 +119,10 @@ services:
       SPRING_REDIS_PORT: 6379
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
     depends_on:
-      - postgres
-      - discovery-service
+      postgres:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
     networks:
       - backend
 
@@ -125,8 +140,24 @@ services:
       SPRING_REDIS_PORT: 6379
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
     depends_on:
-      - postgres
-      - discovery-service
+      postgres:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    networks:
+      - backend
+
+  # ---------- Market Data Service ----------
+  market-data-service:
+    build:
+      context: .
+      dockerfile: market-data-service/Dockerfile
+    container_name: market-data-service
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
+    depends_on:
+      discovery-service:
+        condition: service_healthy
     networks:
       - backend
 
