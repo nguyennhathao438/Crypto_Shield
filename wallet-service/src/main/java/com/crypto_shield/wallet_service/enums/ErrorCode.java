@@ -1,4 +1,4 @@
-package com.crypto_shield.wallet_service.exception;
+package com.crypto_shield.wallet_service.enums;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -7,6 +7,11 @@ import org.springframework.http.HttpStatusCode;
 public enum ErrorCode {
     HAS_HAVE_WALLET(1001, "User has have wallet", HttpStatus.CONFLICT),
     HAS_NOT_WALLET(1002,"User hasn't wallet", HttpStatus.NOT_FOUND),
+    MARGIN_MISMATCH(1003,"Margin isn't match with recipe",HttpStatus.BAD_REQUEST),
+    INVALID_QUANTITY(1004,"Quantity isn't valid",HttpStatus.BAD_REQUEST),
+    INVALID_LEVERAGE(1005,"Leverage isn't valid",HttpStatus.BAD_REQUEST),
+    INVALID_SIDE(1006,"Side isn't valid",HttpStatus.BAD_REQUEST),
+    INSUFFICIENT_BALANCE(1007,"insufficient balance",HttpStatus.BAD_REQUEST),
     UNCATEGORED_EXCEPTION(9999, "Uncategorized exception", HttpStatus.INTERNAL_SERVER_ERROR);
     private final int code;
     private final String message;

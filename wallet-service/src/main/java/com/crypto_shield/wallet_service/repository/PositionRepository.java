@@ -1,0 +1,27 @@
+package com.crypto_shield.wallet_service.repository;
+
+import com.crypto_shield.wallet_service.entity.Position;
+import com.crypto_shield.wallet_service.enums.PositionSide;
+import com.crypto_shield.wallet_service.enums.PositionStatus;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+@Repository
+public interface PositionRepository extends JpaRepository<Position, UUID> {
+    List<Position> findByWalletId(UUID walletId);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Position p WHERE p.walletId = :walletId AND p.symbol = :symbol " +
+            "AND p.side = :side AND p.status = :status")
+    Optional<Position> findOpenPositionForUpdate(
+            @Param("walletId") UUID walletId,
+            @Param("symbol") String symbol,
+            @Param("side") PositionSide side,
+            @Param("status") PositionStatus status);
+}

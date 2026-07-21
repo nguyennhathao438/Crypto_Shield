@@ -3,8 +3,8 @@ package com.crypto_shield.wallet_service.unit;
 import com.crypto_shield.wallet_service.dto.WalletResponse;
 import com.crypto_shield.wallet_service.entity.Wallet;
 import com.crypto_shield.wallet_service.exception.AppException;
-import com.crypto_shield.wallet_service.exception.ErrorCode;
-import com.crypto_shield.wallet_service.repository.WalletReposiory;
+import com.crypto_shield.wallet_service.enums.ErrorCode;
+import com.crypto_shield.wallet_service.repository.WalletRepository;
 import com.crypto_shield.wallet_service.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 class WalletServiceTest {
 
     @Mock
-    private WalletReposiory walletReposiory;
+    private WalletRepository walletRepository;
 
     @InjectMocks
     private WalletService walletService;
@@ -43,11 +43,11 @@ class WalletServiceTest {
                 .id(UUID.randomUUID())
                 .userId(testUserId)
                 .balance(BigDecimal.valueOf(1000))
-                .unrealizedPnl(BigDecimal.valueOf(0))
+                .lockBalance(BigDecimal.valueOf(0))
                 .build();
         expectedResponse = WalletResponse.builder()
                 .balance(BigDecimal.valueOf(1000))
-                .unrealizedPnl(BigDecimal.valueOf(0))
+                .blockBalance(BigDecimal.valueOf(0))
                 .build();
     }
 
@@ -55,8 +55,8 @@ class WalletServiceTest {
     @DisplayName("Should create wallet successfully when user has no wallet")
     void createWallet_Success() {
         // Arrange
-        when(walletReposiory.existsByUserId(testUserId)).thenReturn(false);
-        when(walletReposiory.save(any(Wallet.class))).thenReturn(testWallet);
+        when(walletRepository.existsByUserId(testUserId)).thenReturn(false);
+        when(walletRepository.save(any(Wallet.class))).thenReturn(testWallet);
 
         // Act
         WalletResponse result = walletService.createWallet(testUserId);
@@ -66,18 +66,18 @@ class WalletServiceTest {
                 .isNotNull()
                 .satisfies(response -> {
                     assertThat(response.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(1000));
-                    assertThat(response.getUnrealizedPnl()).isEqualByComparingTo(BigDecimal.valueOf(0));
+                    assertThat(response.getBlockBalance()).isEqualByComparingTo(BigDecimal.valueOf(0));
                 });
 
-        verify(walletReposiory, times(1)).existsByUserId(testUserId);
-        verify(walletReposiory, times(1)).save(any(Wallet.class));
+        verify(walletRepository, times(1)).existsByUserId(testUserId);
+        verify(walletRepository, times(1)).save(any(Wallet.class));
     }
 
     @Test
     @DisplayName("Should throw AppException when user already has a wallet")
     void createWallet_UserAlreadyHasWallet() {
         // Arrange
-        when(walletReposiory.existsByUserId(testUserId)).thenReturn(true);
+        when(walletRepository.existsByUserId(testUserId)).thenReturn(true);
 
         // Act & Assert
         assertThatThrownBy(() -> walletService.createWallet(testUserId))
@@ -87,15 +87,15 @@ class WalletServiceTest {
                     assertThat(appException.getErrorCode()).isEqualTo(ErrorCode.HAS_HAVE_WALLET);
                 });
 
-        verify(walletReposiory, times(1)).existsByUserId(testUserId);
-        verify(walletReposiory, never()).save(any(Wallet.class));
+        verify(walletRepository, times(1)).existsByUserId(testUserId);
+        verify(walletRepository, never()).save(any(Wallet.class));
     }
 
     @Test
     @DisplayName("Should retrieve wallet successfully when wallet exists")
     void getWalletByUser_Success() {
         // Arrange
-        when(walletReposiory.findByUserId(testUserId)).thenReturn(Optional.of(testWallet));
+        when(walletRepository.findByUserId(testUserId)).thenReturn(Optional.of(testWallet));
 
         // Act
         WalletResponse result = walletService.getWalletByUser(testUserId);
@@ -105,17 +105,17 @@ class WalletServiceTest {
                 .isNotNull()
                 .satisfies(response -> {
                     assertThat(response.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(1000));
-                    assertThat(response.getUnrealizedPnl()).isEqualByComparingTo(BigDecimal.valueOf(0));
+                    assertThat(response.getBlockBalance()).isEqualByComparingTo(BigDecimal.valueOf(0));
                 });
 
-        verify(walletReposiory, times(1)).findByUserId(testUserId);
+        verify(walletRepository, times(1)).findByUserId(testUserId);
     }
 
     @Test
     @DisplayName("Should throw AppException when wallet does not exist for user")
     void getWalletByUser_WalletNotFound() {
         // Arrange
-        when(walletReposiory.findByUserId(testUserId)).thenReturn(Optional.empty());
+        when(walletRepository.findByUserId(testUserId)).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThatThrownBy(() -> walletService.getWalletByUser(testUserId))
@@ -125,6 +125,6 @@ class WalletServiceTest {
                     assertThat(appException.getErrorCode()).isEqualTo(ErrorCode.HAS_NOT_WALLET);
                 });
 
-        verify(walletReposiory, times(1)).findByUserId(testUserId);
+        verify(walletRepository, times(1)).findByUserId(testUserId);
     }
 }

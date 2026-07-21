@@ -2,7 +2,7 @@ package com.crypto_shield.wallet_service.integration;
 
 import com.crypto_shield.wallet_service.dto.WalletResponse;
 import com.crypto_shield.wallet_service.exception.AppException;
-import com.crypto_shield.wallet_service.exception.ErrorCode;
+import com.crypto_shield.wallet_service.enums.ErrorCode;
 import com.crypto_shield.wallet_service.service.WalletService;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +45,7 @@ class WalletControllerIT {
         testUserId = UUID.randomUUID();
         testWalletResponse = WalletResponse.builder()
                 .balance(BigDecimal.valueOf(1000))
-                .unrealizedPnl(BigDecimal.valueOf(0))
+                .blockBalance(BigDecimal.valueOf(0))
                 .build();
     }
 

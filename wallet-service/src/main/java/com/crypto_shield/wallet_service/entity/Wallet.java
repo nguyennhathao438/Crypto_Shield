@@ -26,5 +26,9 @@ public class Wallet {
     private BigDecimal balance;
 
     @Column(nullable = false, precision = 38, scale = 18)
-    private BigDecimal unrealizedPnl;
+    private BigDecimal lockBalance;
+    public void lockMargin(BigDecimal margin) {
+        this.balance = this.balance.subtract(margin);
+        this.lockBalance = this.lockBalance.add(margin);
+    }
 }

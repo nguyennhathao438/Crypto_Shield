@@ -12,5 +12,5 @@ import java.math.BigDecimal;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class WalletResponse {
     BigDecimal balance;
-    BigDecimal unrealizedPnl;
+    BigDecimal blockBalance;
 }

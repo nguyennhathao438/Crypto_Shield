@@ -1,13 +1,12 @@
 package com.crypto_shield.wallet_service.controller;
 
-import com.crypto_shield.wallet_service.dto.ApiResponse;
-import com.crypto_shield.wallet_service.dto.CheckBalanceResponse;
-import com.crypto_shield.wallet_service.dto.WalletResponse;
+import com.crypto_shield.wallet_service.dto.*;
 import com.crypto_shield.wallet_service.service.WalletService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;

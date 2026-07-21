@@ -1,5 +1,7 @@
 package com.crypto_shield.wallet_service.exception;
 
+import com.crypto_shield.wallet_service.enums.ErrorCode;
+
 public class AppException extends RuntimeException{
     private ErrorCode errorCode;
 
