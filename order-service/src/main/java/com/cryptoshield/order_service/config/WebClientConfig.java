@@ -1,5 +1,6 @@
 package com.cryptoshield.order_service.config;
 
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -13,13 +14,13 @@ import java.time.Duration;
 public class WebClientConfig {
 
     @Bean
-    public WebClient webClient() {
+    @LoadBalanced
+    public WebClient.Builder webClientBuilder() {
         HttpClient httpClient = HttpClient.create()
-                .responseTimeout(Duration.ofSeconds(3))
+                .responseTimeout(Duration.ofSeconds(10))
                 .followRedirect(false);
 
         return WebClient.builder()
-                .clientConnector(new ReactorClientHttpConnector(httpClient))
-                .build();
+                .clientConnector(new ReactorClientHttpConnector(httpClient));
     }
 }

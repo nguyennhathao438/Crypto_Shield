@@ -7,6 +7,8 @@ import java.util.UUID;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class OpenPositionResponse {
     private boolean success;
     private String message;
@@ -16,6 +18,8 @@ public class OpenPositionResponse {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class PositionData {
         private UUID positionId;
         private String symbol;
@@ -30,6 +34,8 @@ public class OpenPositionResponse {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class WalletData {
         private BigDecimal balance;
         private BigDecimal lockBalance;

@@ -21,7 +21,7 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     UUID userId;
 
     String symbol;

@@ -7,6 +7,8 @@ import com.cryptoshield.order_service.enums.OrderStatus;
 import com.cryptoshield.order_service.enums.OrderType;
 import com.cryptoshield.order_service.exception.AppException;
 import com.cryptoshield.order_service.repository.OrderRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -15,22 +17,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
+import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.util.UUID;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class OrderService {
     @Autowired
     OrderRepository orderRepository;
-    @Autowired
-    WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
 
-    private static final BigDecimal MAX_SLIPPAGE_PERCENT = BigDecimal.valueOf(0.005);
-    private static final Duration CALL_TIMEOUT = Duration.ofSeconds(3);
+    private static final BigDecimal MAX_SLIPPAGE_PERCENT = BigDecimal.valueOf(0.01);
+    private static final Duration CALL_TIMEOUT = Duration.ofSeconds(30);
     public OrderResponse takeOrder(UUID userId, OrderRequest request) {
 
 
@@ -90,24 +95,26 @@ public class OrderService {
                 .build();
     }
     private PriceResponse getMarketPrice(String symbol) {
-        ApiResponse<PriceResponse> response;
+        PriceResponse response;
         try {
+            WebClient webClient = webClientBuilder.build();
+
             response = webClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .scheme("http").host("market-data-service")
-                            .path("/api/price/{symbol}")
-                            .build(symbol))
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<ApiResponse<PriceResponse>>() {})
+                            .uri("http://market-data-service/api/price/{symbol}", symbol)
+                            .retrieve()
+                            .bodyToMono(PriceResponse.class)
                     .block(CALL_TIMEOUT);
         } catch (WebClientException e) {
+            log.warn("Error call api :",e);
             throw new AppException(ErrorCode.MARKET_DATA_UNAVAILABLE);
+
         }
 
-        if (response == null || response.getResult() == null) {
+        if (response == null) {
+            log.warn("Request null");
             throw new AppException(ErrorCode.MARKET_DATA_UNAVAILABLE);
         }
-        return response.getResult();
+        return response;
     }
     private OpenPositionResponse openPositionOnWallet(
             Order order, UUID userId, BigDecimal actualPrice, BigDecimal margin) {
@@ -122,22 +129,39 @@ public class OrderService {
                 .leverage(order.getLeverage())
                 .build();
 
-        ApiResponse<OpenPositionResponse> response;
+        OpenPositionResponse response;
         try {
+            WebClient webClient = webClientBuilder.build();
             response = webClient.post()
-                    .uri("http://wallet-service/internal/psosition/open")
+                    .uri("http://wallet-service/internal/position/open")
                     .bodyValue(req)
                     .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<ApiResponse<OpenPositionResponse>>() {})
+                    .bodyToMono(OpenPositionResponse.class)
                     .block(CALL_TIMEOUT);
+        }  catch (WebClientResponseException e) {
+            String errorBody = e.getResponseBodyAsString();
+            log.warn("Wallet service error [{}]: {}", e.getStatusCode(), errorBody);
+
+            String walletMessage;
+            try {
+                OpenPositionResponse errorResponse = new ObjectMapper()
+                        .readValue(errorBody, OpenPositionResponse.class);
+                walletMessage = errorResponse.getMessage();
+            } catch (Exception parseEx) {
+                walletMessage = "Wallet service error";
+            }
+
+            throw new AppException(ErrorCode.WALLET_SERVICE_ERROR, walletMessage);
         } catch (WebClientException e) {
+            log.warn("Error call api :", e);
             throw new AppException(ErrorCode.WALLET_SERVICE_ERROR);
         }
 
-        if (response == null || response.getResult() == null) {
+        if (response == null) {
+            log.warn("Request null");
             throw new AppException(ErrorCode.WALLET_SERVICE_ERROR);
         }
-        return response.getResult();
+        return response;
     }
     private BigDecimal resolveActualPrice(OrderRequest request, PriceResponse priceData) {
         if (request.getType() == OrderType.LIMIT) {
@@ -151,7 +175,7 @@ public class OrderService {
     private void checkSlippage(BigDecimal expectedPrice, BigDecimal actualPrice) {
         BigDecimal slippagePercent = actualPrice.subtract(expectedPrice).abs()
                 .divide(expectedPrice, 8, RoundingMode.HALF_UP);
-
+        log.warn("Slipage "+expectedPrice +"-"+ actualPrice+"-"+slippagePercent);
         if (slippagePercent.compareTo(MAX_SLIPPAGE_PERCENT) > 0) {
             throw new AppException(ErrorCode.SLIPPAGE_EXCEEDED);
         }

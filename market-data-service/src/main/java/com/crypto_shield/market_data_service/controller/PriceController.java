@@ -22,7 +22,7 @@ public class PriceController {
     private final PriceService streamPriceService;
     @GetMapping("/{type}")
     public Mono<ResponseEntity<PriceResponse>> getCurrentPrice(@PathVariable("type") String type) {
-        String symbol = type.toUpperCase() + "USDT";
+        String symbol = type.toUpperCase();
 
         // đảm bảo đã subscribe (nếu chưa thì subscribe, nếu rồi thì bỏ qua)
         streamPriceService.subscribe(symbol);

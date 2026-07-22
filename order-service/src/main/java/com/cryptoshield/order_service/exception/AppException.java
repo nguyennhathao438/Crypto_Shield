@@ -13,7 +13,10 @@ public class AppException extends RuntimeException{
     public ErrorCode getErrorCode() {
         return errorCode;
     }
-
+    public AppException(ErrorCode errorCode, String customMessage) {
+        super(customMessage);
+        this.errorCode = errorCode;
+    }
     public void setErrorCode(ErrorCode errorCode) {
         this.errorCode = errorCode;
     }
