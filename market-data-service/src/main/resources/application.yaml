@@ -1,6 +1,17 @@
 spring:
   application:
     name: market-data-service
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: market-data-service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.crypto_shield.*"
 server:
   port: 8084
 eureka:
@@ -13,3 +24,4 @@ binance:
   rest-base-url: https://fapi.binance.com
   ws-base-url: wss://fstream.binancefuture.com/ws
   kline-path: /fapi/v1/klines
+
