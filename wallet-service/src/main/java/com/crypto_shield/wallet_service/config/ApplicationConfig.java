@@ -16,7 +16,7 @@ public class ApplicationConfig {
     @Bean
     ApplicationRunner applicationRunner(WalletRepository walletRepository){
         return args -> {
-            if (!walletRepository.existsById(UUID.fromString("11111111-1111-1111-1111-111111111111"))) {
+            if (!walletRepository.existsByUserId(UUID.fromString("22222222-2222-2222-2222-222222222222"))) {
                 Wallet wallet = Wallet.builder()
                         .userId(UUID.fromString("22222222-2222-2222-2222-222222222222"))
                         .balance(new BigDecimal("1000"))

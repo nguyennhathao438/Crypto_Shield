@@ -89,7 +89,7 @@ public class BinanceWebSocketClient implements BinanceCommandSender{
                 if (sink != null) {
                     sink.tryEmitNext(priceResponse);
                 }
-
+                log.info(">>> Chuẩn bị publish lên Kafka: {}", priceResponse);
                 // 3. Publish lên Kafka - phục vụ Wallet/Order Service/Liquidation Engine
                 pricePublisher.publish(priceResponse);
             }

@@ -9,7 +9,7 @@ spring:
         locator:
           enabled: false
       server:
-        webmvc:
+        webflux:
           routes:
             - id: user-service
               uri: lb://USER-SERVICE
@@ -18,7 +18,7 @@ spring:
             - id: wallet-service
               uri: lb://WALLET-SERVICE
               predicates:
-                - Path=/api/wallet/**
+                - Path=/api/wallet/**,/internal/position/stream/**
             - id: order-service
               uri: lb://ORDER-SERVICE
               predicates:

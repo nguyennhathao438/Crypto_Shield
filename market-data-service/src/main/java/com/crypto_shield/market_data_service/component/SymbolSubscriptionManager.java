@@ -59,6 +59,7 @@ public class SymbolSubscriptionManager {
     public void onStreamClientDisconnect(String symbol) {
         String upper = symbol.toUpperCase();
         AtomicInteger count = streamClientCount.get(upper);
+        log.info(">>> onStreamClientDisconnect được gọi cho {}", symbol);
         if (count != null) {
             int remaining = count.decrementAndGet();
             log.info("Stream client giảm cho {}: còn {}", upper, remaining);
@@ -80,7 +81,7 @@ public class SymbolSubscriptionManager {
     private void evaluateUnsubscribe(String symbol) {
         int businessCount = getCount(businessDemandCount, symbol);
         int streamCount = getCount(streamClientCount, symbol);
-
+        log.info("Evaluate unsubscribe {}: business={}, stream={}", symbol, businessCount, streamCount);
         if (businessCount <= 0 && streamCount <= 0) {
             if (subscribedSymbols.remove(symbol)) {
                 commandSender.sendSubscribeCommand(symbol.toLowerCase() + "@ticker", "UNSUBSCRIBE");
