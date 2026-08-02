@@ -1,4 +1,5 @@
-package com.cryptoshield.order_service.dto;
+package com.crypto_shield.wallet_service.dto.response;
+
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;

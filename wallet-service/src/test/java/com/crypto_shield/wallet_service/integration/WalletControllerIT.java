@@ -1,6 +1,6 @@
 package com.crypto_shield.wallet_service.integration;
 
-import com.crypto_shield.wallet_service.dto.WalletResponse;
+import com.crypto_shield.wallet_service.dto.response.WalletResponse;
 import com.crypto_shield.wallet_service.exception.AppException;
 import com.crypto_shield.wallet_service.enums.ErrorCode;
 import com.crypto_shield.wallet_service.service.WalletService;

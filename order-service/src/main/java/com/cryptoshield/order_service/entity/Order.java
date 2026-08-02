@@ -26,7 +26,7 @@ public class Order {
 
     String symbol;
     @Enumerated(EnumType.STRING)
-    OrderType type; //BTCUSDT , ETHUSDT
+    OrderType type; //MARKET , LIMIT
     @Enumerated(EnumType.STRING)
     OrderSide side; //LONG , SHORT
     @Enumerated(EnumType.STRING)

@@ -1,11 +1,10 @@
-package com.cryptoshield.order_service.dto;
+package com.cryptoshield.order_service.dto.request;
 
 import com.cryptoshield.order_service.enums.OrderSide;
 import com.cryptoshield.order_service.enums.OrderType;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.hibernate.metamodel.mapping.ForeignKeyDescriptor;
 
 import java.math.BigDecimal;
 

@@ -27,4 +27,8 @@ public interface PositionRepository extends JpaRepository<Position, UUID> {
     List<Position> findByWalletIdAndStatus(UUID walletId, PositionStatus status);
     @Query("SELECT DISTINCT p.walletId FROM Position p WHERE p.symbol = :symbol AND p.status = :status")
     List<UUID> findDistinctWalletIdBySymbolAndStatus(@Param("symbol") String symbol, @Param("status") PositionStatus status);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Position p WHERE p.id = :id")
+    Optional<Position> findByIdForUpdate(@Param("id") UUID id);
 }

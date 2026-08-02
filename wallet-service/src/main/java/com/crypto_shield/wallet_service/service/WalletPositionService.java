@@ -1,7 +1,7 @@
 package com.crypto_shield.wallet_service.service;
 
-import com.crypto_shield.wallet_service.dto.OpenPositionRequest;
-import com.crypto_shield.wallet_service.dto.OpenPositionResponse;
+import com.crypto_shield.wallet_service.dto.request.OpenPositionRequest;
+import com.crypto_shield.wallet_service.dto.response.OpenPositionResponse;
 import com.crypto_shield.wallet_service.entity.Position;
 import com.crypto_shield.wallet_service.entity.Wallet;
 import com.crypto_shield.wallet_service.enums.ErrorCode;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

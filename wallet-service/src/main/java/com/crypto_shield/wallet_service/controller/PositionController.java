@@ -1,10 +1,14 @@
 package com.crypto_shield.wallet_service.controller;
 
-import com.crypto_shield.wallet_service.dto.OpenPositionRequest;
-import com.crypto_shield.wallet_service.dto.OpenPositionResponse;
-import com.crypto_shield.wallet_service.dto.PositionResponse;
+import com.crypto_shield.wallet_service.dto.request.ClosePositionRequest;
+import com.crypto_shield.wallet_service.dto.request.OpenPositionRequest;
+import com.crypto_shield.wallet_service.dto.response.ClosePositionResponse;
+import com.crypto_shield.wallet_service.dto.response.OpenPositionResponse;
+import com.crypto_shield.wallet_service.dto.response.PositionResponse;
+import com.crypto_shield.wallet_service.service.ClosePositionService;
 import com.crypto_shield.wallet_service.service.PositionService;
 import com.crypto_shield.wallet_service.service.WalletPositionService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,9 +27,15 @@ import java.util.UUID;
 public class PositionController {
    WalletPositionService walletPositionService;
    PositionService positionService;
+   ClosePositionService closePositionService;
     @PostMapping("/open")
-    public ResponseEntity<OpenPositionResponse> openPosition(@RequestBody OpenPositionRequest req) {
+    public ResponseEntity<OpenPositionResponse> openPosition(@RequestBody @Valid OpenPositionRequest req) {
         OpenPositionResponse res = walletPositionService.openPosition(req);
+        return res.isSuccess() ? ResponseEntity.ok(res) : ResponseEntity.badRequest().body(res);
+    }
+    @PostMapping("/close")
+    public ResponseEntity<ClosePositionResponse> closenPosition(@RequestBody @Valid ClosePositionRequest req) {
+        ClosePositionResponse res = closePositionService.closePosition(req);
         return res.isSuccess() ? ResponseEntity.ok(res) : ResponseEntity.badRequest().body(res);
     }
 

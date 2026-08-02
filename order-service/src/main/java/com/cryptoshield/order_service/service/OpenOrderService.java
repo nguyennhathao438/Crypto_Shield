@@ -1,6 +1,10 @@
 package com.cryptoshield.order_service.service;
 
-import com.cryptoshield.order_service.dto.*;
+import com.cryptoshield.order_service.dto.request.OpenPositionRequest;
+import com.cryptoshield.order_service.dto.request.OrderRequest;
+import com.cryptoshield.order_service.dto.response.OpenPositionResponse;
+import com.cryptoshield.order_service.dto.response.OrderResponse;
+import com.cryptoshield.order_service.dto.response.PriceResponse;
 import com.cryptoshield.order_service.entity.Order;
 import com.cryptoshield.order_service.enums.ErrorCode;
 import com.cryptoshield.order_service.enums.OrderStatus;
@@ -10,15 +14,10 @@ import com.cryptoshield.order_service.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
@@ -29,12 +28,12 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OrderService {
+public class OpenOrderService {
     @Autowired
     OrderRepository orderRepository;
     private final WebClient.Builder webClientBuilder;
 
-    private static final BigDecimal MAX_SLIPPAGE_PERCENT = BigDecimal.valueOf(0.01);
+    private static final BigDecimal MAX_SLIPPAGE_PERCENT = BigDecimal.valueOf(0.005);
     private static final Duration CALL_TIMEOUT = Duration.ofSeconds(30);
     public OrderResponse takeOrder(UUID userId, OrderRequest request) {
 
@@ -124,6 +123,7 @@ public class OrderService {
                 .symbol(order.getSymbol())
                 .side(order.getSide().name())
                 .quantity(order.getQuantity())
+                .type(order.getType().toString())
                 .margin(margin)
                 .price(actualPrice)
                 .leverage(order.getLeverage())

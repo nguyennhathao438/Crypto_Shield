@@ -1,6 +1,6 @@
 package com.cryptoshield.order_service.exception;
 
-import com.cryptoshield.order_service.dto.ApiResponse;
+import com.cryptoshield.order_service.dto.response.ApiResponse;
 import com.cryptoshield.order_service.enums.ErrorCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

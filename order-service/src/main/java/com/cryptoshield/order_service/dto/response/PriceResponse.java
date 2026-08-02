@@ -1,4 +1,4 @@
-package com.cryptoshield.order_service.dto;
+package com.cryptoshield.order_service.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -2,7 +2,7 @@ package com.crypto_shield.wallet_service.service;
 
 import com.crypto_shield.wallet_service.config.PriceCache;
 import com.crypto_shield.wallet_service.config.SymbolDemandPublisher;
-import com.crypto_shield.wallet_service.dto.PositionResponse;
+import com.crypto_shield.wallet_service.dto.response.PositionResponse;
 import com.crypto_shield.wallet_service.entity.Position;
 import com.crypto_shield.wallet_service.entity.Wallet;
 import com.crypto_shield.wallet_service.enums.ErrorCode;

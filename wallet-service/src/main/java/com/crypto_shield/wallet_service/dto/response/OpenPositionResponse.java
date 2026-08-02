@@ -1,4 +1,4 @@
-package com.crypto_shield.wallet_service.dto;
+package com.crypto_shield.wallet_service.dto.response;
 
 
 import lombok.*;

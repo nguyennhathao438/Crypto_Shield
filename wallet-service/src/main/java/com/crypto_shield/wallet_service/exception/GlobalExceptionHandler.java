@@ -1,6 +1,6 @@
 package com.crypto_shield.wallet_service.exception;
 
-import com.crypto_shield.wallet_service.dto.ApiResponse;
+import com.crypto_shield.wallet_service.dto.response.ApiResponse;
 import com.crypto_shield.wallet_service.enums.ErrorCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

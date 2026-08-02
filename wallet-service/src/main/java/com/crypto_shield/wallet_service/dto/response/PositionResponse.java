@@ -1,10 +1,9 @@
-package com.crypto_shield.wallet_service.dto;
+package com.crypto_shield.wallet_service.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
