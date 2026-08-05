@@ -22,7 +22,7 @@ spring:
             - id: order-service
               uri: lb://ORDER-SERVICE
               predicates:
-                - Path=/api/order/**
+                - Path=/api/order/**,/api/order-conditions/**
             - id: market-data-service
               uri: lb://MARKET-DATA-SERVICE
               predicates:

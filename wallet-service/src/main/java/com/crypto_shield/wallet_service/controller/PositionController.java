@@ -43,4 +43,9 @@ public class PositionController {
     public Flux<List<PositionResponse>> streamPositions(@RequestHeader("X-User-Id") UUID userId) {
         return positionService.streamPositions(userId);
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<PositionResponse> getById(@PathVariable("id") UUID id) {
+        return ResponseEntity.ok(positionService.getPositionById(id));
+    }
+
 }

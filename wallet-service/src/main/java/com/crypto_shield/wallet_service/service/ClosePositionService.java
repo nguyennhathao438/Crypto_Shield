@@ -12,6 +12,7 @@ import com.crypto_shield.wallet_service.repository.PositionRepository;
 import com.crypto_shield.wallet_service.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ClosePositionService {
     private final PositionRepository positionRepository;
     private final WalletRepository walletRepository;
@@ -27,7 +29,7 @@ public class ClosePositionService {
     @Transactional
     public ClosePositionResponse closePosition(ClosePositionRequest request) {
 
-        Wallet wallet = walletRepository.findByUserId(request.getUserId())
+        Wallet wallet = walletRepository.findByUserIdForUpdate(request.getUserId())
                 .orElseThrow(() -> new AppException(ErrorCode.HAS_NOT_WALLET));
 
         Position position = positionRepository.findByIdForUpdate(request.getPositionId())
@@ -54,7 +56,7 @@ public class ClosePositionService {
                 .multiply(closeRatio).setScale(8, RoundingMode.HALF_UP);
 
         BigDecimal amountToReturn = releasedMargin.add(realizedPnl);
-        wallet.unlockMargin(amountToReturn);
+        wallet.unlockMargin(amountToReturn,realizedPnl);
         walletRepository.save(wallet);
 
         if (fullyClosed) {

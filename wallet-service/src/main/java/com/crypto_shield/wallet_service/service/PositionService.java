@@ -13,6 +13,7 @@ import com.crypto_shield.wallet_service.repository.PositionRepository;
 import com.crypto_shield.wallet_service.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
@@ -95,7 +96,7 @@ public class PositionService {
         BigDecimal unrealizedPnl = null;
         BigDecimal unrealizedPnlPercent = null;
 
-        if (currentPrice != null) {
+        if (currentPrice != null && position.getStatus() == PositionStatus.OPEN) {
             unrealizedPnl = calculateUnrealizedPnl(position, currentPrice);
             unrealizedPnlPercent = unrealizedPnl
                     .divide(position.getMargin(), 4, RoundingMode.HALF_UP)
@@ -114,6 +115,7 @@ public class PositionService {
                 .liquidationPrice(position.getLiquidationPrice())
                 .unrealizedPnl(unrealizedPnl)
                 .unrealizedPnlPercent(unrealizedPnlPercent)
+                .status(position.getStatus())
                 .build();
     }
 
@@ -123,5 +125,14 @@ public class PositionService {
                 : position.getAverageEntryPrice().subtract(currentPrice);
 
         return priceDiff.multiply(position.getQuantity()).setScale(8, RoundingMode.HALF_UP);
+    }
+
+    @Transactional(readOnly = true)
+    public PositionResponse getPositionById(UUID positionId) {
+        Position position = positionRepository.findById(positionId)
+                .orElseThrow(() -> new AppException(ErrorCode.POSITION_NOT_FOUND));
+
+
+        return toPositionResponse(position);
     }
 }

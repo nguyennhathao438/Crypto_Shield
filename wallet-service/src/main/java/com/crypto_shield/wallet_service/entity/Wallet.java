@@ -31,8 +31,8 @@ public class Wallet {
         this.balance = this.balance.subtract(margin);
         this.lockBalance = this.lockBalance.add(margin);
     }
-    public void unlockMargin(BigDecimal margin){
-        this.balance = this.balance.add(margin);
+    public void unlockMargin(BigDecimal margin,BigDecimal realizedPnl){
+        this.balance = this.balance.add(margin.add(realizedPnl));
         this.lockBalance = this.lockBalance.subtract(margin);
     }
 }

@@ -1,15 +1,18 @@
-package com.crypto_shield.wallet_service.dto.response;
+package com.cryptoshield.order_service.dto.response;
 
-import com.crypto_shield.wallet_service.enums.PositionSide;
-import com.crypto_shield.wallet_service.enums.PositionStatus;
+import com.cryptoshield.order_service.enums.PositionStatus;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PositionResponse {
     private UUID positionId;
     private String symbol;
@@ -24,3 +27,4 @@ public class PositionResponse {
     private BigDecimal unrealizedPnlPercent;
     private PositionStatus status;
 }
+
