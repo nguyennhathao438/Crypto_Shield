@@ -1,5 +1,7 @@
 package com.cryptoshield.order_service.service;
 
+import com.cryptoshield.order_service.components.LimitOrderMatchingEngine;
+import com.cryptoshield.order_service.components.SymbolDemandProducer;
 import com.cryptoshield.order_service.dto.request.OpenPositionRequest;
 import com.cryptoshield.order_service.dto.request.OrderRequest;
 import com.cryptoshield.order_service.dto.response.OpenPositionResponse;
@@ -7,6 +9,7 @@ import com.cryptoshield.order_service.dto.response.OrderResponse;
 import com.cryptoshield.order_service.dto.response.PriceResponse;
 import com.cryptoshield.order_service.entity.Order;
 import com.cryptoshield.order_service.enums.ErrorCode;
+import com.cryptoshield.order_service.enums.OrderSide;
 import com.cryptoshield.order_service.enums.OrderStatus;
 import com.cryptoshield.order_service.enums.OrderType;
 import com.cryptoshield.order_service.exception.AppException;
@@ -14,7 +17,9 @@ import com.cryptoshield.order_service.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -35,6 +40,9 @@ public class OpenOrderService {
 
     private static final BigDecimal MAX_SLIPPAGE_PERCENT = BigDecimal.valueOf(0.005);
     private static final Duration CALL_TIMEOUT = Duration.ofSeconds(30);
+    private final LimitOrderMatchingEngine limitOrderMatchingEngine;
+    private final SymbolDemandProducer symbolDemandProducer;
+    @Transactional
     public OrderResponse takeOrder(UUID userId, OrderRequest request) {
 
 
@@ -45,13 +53,27 @@ public class OpenOrderService {
         // Check slippage
         if (request.getType() == OrderType.MARKET && request.getPrice() != null) {
             checkSlippage(request.getPrice(), actualPrice);
+        }else if(request.getType() == OrderType.LIMIT && request.getPrice() != null){
+            if (request.getSide() == OrderSide.BUY &&
+                    request.getPrice().compareTo(actualPrice) >= 0) {
+                throw new AppException(ErrorCode.INVALID_LIMIT_PRICE);
+            }
+            if (request.getSide() == OrderSide.SELL &&
+                    request.getPrice().compareTo(actualPrice) <= 0) {
+                throw new AppException(ErrorCode.INVALID_LIMIT_PRICE);
+            }
         }
 
         // Calculated margin
         BigDecimal notional = actualPrice.multiply(request.getQuantity());
         BigDecimal calculatedMargin = notional.divide(
                 BigDecimal.valueOf(request.getLeverage()), 8, RoundingMode.HALF_UP);
+        BigDecimal expectedMargin = calculatedMargin.setScale(2, RoundingMode.HALF_UP);
 
+        if (request.getMargin().setScale(2, RoundingMode.HALF_UP)
+                .compareTo(expectedMargin) != 0) {
+            throw new AppException(ErrorCode.INVALID_MARGIN);
+        }
         OrderStatus status = (request.getType() == OrderType.MARKET)
                 ? OrderStatus.OPEN
                 : OrderStatus.PENDING;
@@ -79,8 +101,13 @@ public class OpenOrderService {
                 orderRepository.save(order);
                 throw new AppException(ErrorCode.WALLET_SERVICE_ERROR);
             }
+        }else {
+            symbolDemandProducer.requestSymbol(order.getSymbol());
+            limitOrderMatchingEngine.register(order);
+
+            log.info("Đăng ký lệnh LIMIT {} - symbol={}, side={}, giá đặt={}, khối lượng={}",
+                    order.getId(), order.getSymbol(), order.getSide(), order.getEntryPrice(), order.getQuantity());
         }
-        // LIMIT order: chỉ lưu PENDING, chờ matching engine xử lý khi giá chạm mức đặt
 
         return OrderResponse.builder()
                 .side(order.getSide())
@@ -179,5 +206,28 @@ public class OpenOrderService {
         if (slippagePercent.compareTo(MAX_SLIPPAGE_PERCENT) > 0) {
             throw new AppException(ErrorCode.SLIPPAGE_EXCEEDED);
         }
+    }
+    @Transactional
+    public void cancelLimitOrder(UUID orderId, UUID userId) {
+        Order order = orderRepository.findByIdForUpdate(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+
+        if (!order.getUserId().equals(userId)) {
+            throw new AppException(ErrorCode.ORDER_NOT_BELONG_TO_USER);
+        }
+        if (order.getType() != OrderType.LIMIT) {
+            throw new AppException(ErrorCode.INVALID_ORDER_TYPE);
+        }
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new AppException(ErrorCode.ORDER_NOT_PENDING);
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+
+        limitOrderMatchingEngine.unregister(order);
+        symbolDemandProducer.releaseSymbol(order.getSymbol());
+
+        log.info("Đã hủy lệnh LIMIT {} theo yêu cầu người dùng", order.getId());
     }
 }

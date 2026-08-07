@@ -2,6 +2,7 @@ package com.cryptoshield.order_service.service;
 
 import com.cryptoshield.order_service.components.OrderMatchingEngine;
 import com.cryptoshield.order_service.components.SymbolDemandProducer;
+import com.cryptoshield.order_service.components.WalletServiceGateway;
 import com.cryptoshield.order_service.dto.request.ClosePositionRequest;
 import com.cryptoshield.order_service.dto.response.ClosePositionResponse;
 import com.cryptoshield.order_service.dto.response.OpenPositionResponse;
@@ -13,6 +14,7 @@ import com.cryptoshield.order_service.repository.OrderConditionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -27,10 +29,9 @@ import java.util.List;
 @Transactional
 @Slf4j
 public class OrderExecutionService {
-    private final WebClient.Builder webClientBuilder;
+    private final WalletServiceGateway walletServiceGateway;
     private final OrderConditionRepository orderConditionRepository;
     private final SymbolDemandProducer symbolDemandProducer;
-    private final OrderMatchingEngine orderMatchingEngine;
     private static final Duration CALL_TIMEOUT = Duration.ofSeconds(30);
     @Transactional
     public boolean execute(OrderCondition orderFromCache, BigDecimal executedPrice) {
@@ -40,7 +41,14 @@ public class OrderExecutionService {
             return true;
         }
         try {
-            ClosePositionResponse res = closePosition(order, executedPrice);
+            ClosePositionRequest request = ClosePositionRequest.builder()
+                    .userId(order.getUserId())
+                    .positionId(order.getPositionId())
+                    .symbol(order.getSymbol())
+                    .currentPrice(executedPrice)
+                    .closedQuantity(order.getQuantity())
+                    .build();
+            ClosePositionResponse res = walletServiceGateway.closePosition(request);
             order.setStatus(OrderConditionStatus.EXECUTED);
             orderConditionRepository.save(order);
             log.info("Khớp lệnh {} - symbol={}, giá khớp={}, PnL={}",
@@ -72,54 +80,6 @@ public class OrderExecutionService {
         symbolDemandProducer.releaseSymbol(order.getSymbol());
         return true;
     }
-    private ClosePositionResponse closePosition(OrderCondition order, BigDecimal executedPrice) {
-        ClosePositionRequest request = ClosePositionRequest.builder()
-                .userId(order.getUserId())
-                .positionId(order.getPositionId())
-                .symbol(order.getSymbol())
-                .currentPrice(executedPrice)
-                .closedQuantity(order.getQuantity())
-                .build();
-
-        try {
-            WebClient webClient = webClientBuilder.build();
-            ClosePositionResponse response = webClient.post()
-                    .uri("http://wallet-service/internal/position/close")
-                    .bodyValue(request)
-                    .retrieve()
-                    .bodyToMono(ClosePositionResponse.class)
-                    .block(CALL_TIMEOUT);
-
-            if (response == null || !response.isSuccess()) {
-                throw new AppException(ErrorCode.WALLET_SERVICE_ERROR);
-            }
-            return response;
-
-        } catch (WebClientResponseException.Conflict e) {
-            throw new AppException(ErrorCode.POSITION_ALREADY_CLOSED);
-        } catch (WebClientResponseException.NotFound e) {
-            throw new AppException(ErrorCode.POSITION_NOT_FOUND);
-        } catch (WebClientResponseException e) {
-            String errorBody = e.getResponseBodyAsString();
-            log.warn("Wallet service error [{}]: {}", e.getStatusCode(), errorBody);
-
-            String walletMessage;
-            try {
-                OpenPositionResponse errorResponse = new ObjectMapper()
-                        .readValue(errorBody, OpenPositionResponse.class);
-                walletMessage = errorResponse.getMessage();
-            } catch (Exception parseEx) {
-                walletMessage = "Wallet service error";
-            }
-
-            throw new AppException(ErrorCode.WALLET_SERVICE_ERROR, walletMessage);
-        } catch (AppException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Không gọi được wallet-service khi đóng vị thế: {}", e.getMessage());
-            throw new AppException(ErrorCode.WALLET_SERVICE_TIMEOUT);
-        }
-    }
     private void cancelRemainingOrderConditions(OrderCondition triggeredOrder) {
         List<OrderCondition> remaining = orderConditionRepository
                 .findByPositionIdAndStatusAndIdNot(
@@ -132,7 +92,6 @@ public class OrderExecutionService {
             other.setStatus(OrderConditionStatus.CANCELLED);
             orderConditionRepository.save(other);
 
-            orderMatchingEngine.unregister(other);
             symbolDemandProducer.releaseSymbol(other.getSymbol());
 
             log.info("Tự động hủy lệnh {} (type={}) do position {} đã đóng hết bởi lệnh {}",

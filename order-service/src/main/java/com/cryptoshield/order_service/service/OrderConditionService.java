@@ -11,6 +11,7 @@ import com.cryptoshield.order_service.exception.AppException;
 import com.cryptoshield.order_service.repository.OrderConditionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -141,10 +142,13 @@ public class OrderConditionService {
     }
 
     @Transactional
-    public void cancelOrderCondition(UUID id) {
+    public void cancelOrderCondition(UUID id, UUID userId) {
         OrderCondition order = orderConditionRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_CONDITION_NOT_FOUND));
 
+        if (!order.getUserId().equals(userId)) {
+            throw new AppException(ErrorCode.ORDER_NOT_BELONG_TO_USER);
+        }
         if (order.getStatus() != OrderConditionStatus.PENDING) {
             throw new AppException(ErrorCode.ORDER_CONDITION_NOT_PENDING);
         }

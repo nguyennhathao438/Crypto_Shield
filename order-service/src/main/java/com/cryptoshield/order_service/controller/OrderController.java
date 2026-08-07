@@ -7,6 +7,7 @@ import com.cryptoshield.order_service.dto.response.CloseOrderResponse;
 import com.cryptoshield.order_service.dto.response.OrderResponse;
 import com.cryptoshield.order_service.service.CloseOrderService;
 import com.cryptoshield.order_service.service.OpenOrderService;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -39,5 +40,12 @@ public class OrderController {
                 .result(closeOrderService.closeOrder(userId,closeOrderRequest))
                 .build());
     }
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<Void> cancelLimitOrder(
+            @PathVariable("orderId") UUID orderId,
+            @RequestHeader("X-User-Id") UUID userId) {
 
+        openOrderService.cancelLimitOrder(orderId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }

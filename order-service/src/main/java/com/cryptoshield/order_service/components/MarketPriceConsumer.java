@@ -12,10 +12,11 @@ import org.springframework.stereotype.Component;
 public class MarketPriceConsumer {
     private final PriceCache priceCacheService;
     private final OrderMatchingEngine orderMatchingEngine;
-
+    private final LimitOrderMatchingEngine limitOrderMatchingEngine;
     @KafkaListener(topics = "market-price-updates", groupId = "order-service")
     public void onPriceUpdate(PriceResponse priceResponse) {
         priceCacheService.updatePrice(priceResponse.getSymbol(), priceResponse.getPrice());
         orderMatchingEngine.checkOrders(priceResponse.getSymbol(), priceResponse.getPrice());
+        limitOrderMatchingEngine.checkOrders(priceResponse.getSymbol(), priceResponse.getPrice());
     }
 }

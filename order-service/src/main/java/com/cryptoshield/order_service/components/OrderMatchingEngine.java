@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
 
 @Component
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class OrderMatchingEngine {
     private final OrderConditionRepository orderConditionRepository;
     private final SymbolDemandProducer symbolDemandProducer;
     private final OrderExecutionService orderExecutionService;
+    private final Executor orderExecutionExecutor;
     @PostConstruct
     public void restoreState() {
         List<OrderCondition> pending = orderConditionRepository.findByStatus(OrderConditionStatus.PENDING);
@@ -48,13 +50,10 @@ public class OrderMatchingEngine {
 
         for (OrderCondition order : orders) {
             if (isTriggered(order, currentPrice)) {
-                boolean terminal = orderExecutionService.execute(order, currentPrice);
-                if (terminal) {
-                    unregister(order);
-                } else {
-                    log.warn("Lệnh {} chưa xử lý xong do lỗi tạm thời, giữ lại để thử ở tick giá tiếp theo",
-                            order.getId());
-                }
+                orderExecutionExecutor.execute(() -> {
+                    boolean terminal = orderExecutionService.execute(order, currentPrice);
+                    if (terminal) unregister(order);
+                });
             }
         }
     }
