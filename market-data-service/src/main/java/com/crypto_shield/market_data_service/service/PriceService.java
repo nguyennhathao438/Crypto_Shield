@@ -16,6 +16,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.netty.http.client.HttpClient;
+import reactor.util.concurrent.Queues;
 import reactor.util.retry.Retry;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -174,7 +175,7 @@ public class PriceService {
                 .incrementAndGet();
 
         Sinks.Many<PriceResponse> sink = priceSinks.computeIfAbsent(upper,
-                s -> Sinks.many().multicast().onBackpressureBuffer());
+                s -> Sinks.many().multicast().onBackpressureBuffer(Queues.SMALL_BUFFER_SIZE, false));
 
         return sink.asFlux().doFinally(signalType -> onClientDisconnect(upper));
     }

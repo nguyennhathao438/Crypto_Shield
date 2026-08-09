@@ -49,17 +49,17 @@ public class OpenOrderService {
         // Get price from data service
         PriceResponse priceData = getMarketPrice(request.getSymbol());
         BigDecimal actualPrice = resolveActualPrice(request, priceData);
-
+        log.info("actualPrice {} - order price {} - type {}",actualPrice, request.getPrice(),request.getType());
         // Check slippage
         if (request.getType() == OrderType.MARKET && request.getPrice() != null) {
             checkSlippage(request.getPrice(), actualPrice);
         }else if(request.getType() == OrderType.LIMIT && request.getPrice() != null){
             if (request.getSide() == OrderSide.BUY &&
-                    request.getPrice().compareTo(actualPrice) >= 0) {
+                    request.getPrice().compareTo(priceData.getPrice()) >= 0) {
                 throw new AppException(ErrorCode.INVALID_LIMIT_PRICE);
             }
             if (request.getSide() == OrderSide.SELL &&
-                    request.getPrice().compareTo(actualPrice) <= 0) {
+                    request.getPrice().compareTo(priceData.getPrice()) <= 0) {
                 throw new AppException(ErrorCode.INVALID_LIMIT_PRICE);
             }
         }
@@ -68,12 +68,7 @@ public class OpenOrderService {
         BigDecimal notional = actualPrice.multiply(request.getQuantity());
         BigDecimal calculatedMargin = notional.divide(
                 BigDecimal.valueOf(request.getLeverage()), 8, RoundingMode.HALF_UP);
-        BigDecimal expectedMargin = calculatedMargin.setScale(2, RoundingMode.HALF_UP);
 
-        if (request.getMargin().setScale(2, RoundingMode.HALF_UP)
-                .compareTo(expectedMargin) != 0) {
-            throw new AppException(ErrorCode.INVALID_MARGIN);
-        }
         OrderStatus status = (request.getType() == OrderType.MARKET)
                 ? OrderStatus.OPEN
                 : OrderStatus.PENDING;
@@ -110,6 +105,7 @@ public class OpenOrderService {
         }
 
         return OrderResponse.builder()
+                .id(order.getId())
                 .side(order.getSide())
                 .type(order.getType())
                 .price(order.getEntryPrice())

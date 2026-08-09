@@ -23,7 +23,7 @@ public class OrderConditionController {
     }
     @DeleteMapping("/{orderId}")
     public ResponseEntity<Void> cancelLimitOrder(
-            @PathVariable("ocId") UUID ocId,
+            @PathVariable("orderId") UUID ocId,
             @RequestHeader("X-User-Id") UUID userId) {
 
         orderConditionService.cancelOrderCondition(ocId,userId);

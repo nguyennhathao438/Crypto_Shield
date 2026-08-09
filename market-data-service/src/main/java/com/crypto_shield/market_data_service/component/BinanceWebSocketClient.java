@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BinanceWebSocketClient implements BinanceCommandSender{
+public class BinanceWebSocketClient implements BinanceCommandSender , SinkCleaner{
     @Value("${binance.ws-base-url}")
     String wsUrl;
     final PriceCache priceCache;
@@ -45,7 +45,7 @@ public class BinanceWebSocketClient implements BinanceCommandSender{
     @PostConstruct
     public void connect() {
         subscriptionManager.setCommandSender(this);
-
+        subscriptionManager.setSinkCleaner(this);
         wsClient.execute(URI.create(wsUrl), session -> {
                     log.info("Đã kết nối WS Binance Futures");
                     subscriptionManager.resubscribeAll();
@@ -110,6 +110,7 @@ public class BinanceWebSocketClient implements BinanceCommandSender{
                 s -> Sinks.many().multicast().onBackpressureBuffer());
         return sink.asFlux();
     }
+    @Override
     public void removeSinkIfUnused(String symbol) {
         priceSinks.remove(symbol.toUpperCase());
     }

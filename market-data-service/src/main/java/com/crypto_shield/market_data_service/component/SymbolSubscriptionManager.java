@@ -21,14 +21,15 @@ public class SymbolSubscriptionManager {
     BinanceCommandSender commandSender;
 
     final Set<String> subscribedSymbols = ConcurrentHashMap.newKeySet();
-
+    SinkCleaner sinkCleaner;
     final ConcurrentHashMap<String, AtomicInteger> businessDemandCount = new ConcurrentHashMap<>();
     final ConcurrentHashMap<String, AtomicInteger> streamClientCount = new ConcurrentHashMap<>();
-
     public void setCommandSender(BinanceCommandSender sender) {
         this.commandSender = sender;
     }
-
+    public void setSinkCleaner(SinkCleaner cleaner) {
+        this.sinkCleaner = cleaner;
+    }
     // ============ NGUỒN 1: Business demand (gọi từ Kafka Consumer khi nhận NEED/RELEASE) ============
 
     public void onBusinessDemandIncrease(String symbol) {
@@ -60,9 +61,13 @@ public class SymbolSubscriptionManager {
         String upper = symbol.toUpperCase();
         AtomicInteger count = streamClientCount.get(upper);
         log.info(">>> onStreamClientDisconnect được gọi cho {}", symbol);
+        int remaining = 0;
         if (count != null) {
-            int remaining = count.decrementAndGet();
+            remaining = count.decrementAndGet();
             log.info("Stream client giảm cho {}: còn {}", upper, remaining);
+        }
+        if (remaining <= 0 && sinkCleaner != null) {
+            sinkCleaner.removeSinkIfUnused(upper);
         }
         evaluateUnsubscribe(upper);
     }

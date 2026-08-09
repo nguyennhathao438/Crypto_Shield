@@ -193,6 +193,8 @@ services:
       context: .
       dockerfile: market-data-service/Dockerfile
     container_name: market-data-service
+    ports:
+      - "8084:8084"
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092

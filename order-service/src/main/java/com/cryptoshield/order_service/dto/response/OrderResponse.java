@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -14,6 +15,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderResponse {
+    UUID id;
     String symbol;
     OrderType type;
 
@@ -28,6 +30,5 @@ public class OrderResponse {
     Integer leverage;
 
      OrderStatus status;
-
 
 }
