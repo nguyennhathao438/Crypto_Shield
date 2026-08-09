@@ -1,6 +1,7 @@
 package com.crypto_shield.wallet_service.unit;
 
 import com.crypto_shield.wallet_service.dto.response.WalletResponse;
+import com.crypto_shield.wallet_service.dto.response.CheckBalanceResponse;
 import com.crypto_shield.wallet_service.entity.Wallet;
 import com.crypto_shield.wallet_service.exception.AppException;
 import com.crypto_shield.wallet_service.enums.ErrorCode;
@@ -126,5 +127,61 @@ class WalletServiceTest {
                 });
 
         verify(walletRepository, times(1)).findByUserId(testUserId);
+    }
+
+    @Test
+    @DisplayName("Should return success when wallet balance equals requested margin")
+    void checkBalance_balanceEqualsMargin_returnsEnoughBalance() {
+        // Given
+        when(walletRepository.findByUserId(testUserId)).thenReturn(Optional.of(testWallet));
+
+        // When
+        CheckBalanceResponse result = walletService.checkBalance(testUserId, BigDecimal.valueOf(1000));
+
+        // Then
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(result.getMessage()).isEqualTo("enough balance");
+        verify(walletRepository).findByUserId(testUserId);
+    }
+
+    @Test
+    @DisplayName("Should return success when wallet balance is greater than requested margin")
+    void checkBalance_balanceGreaterThanMargin_returnsEnoughBalance() {
+        // Given
+        when(walletRepository.findByUserId(testUserId)).thenReturn(Optional.of(testWallet));
+
+        // When
+        CheckBalanceResponse result = walletService.checkBalance(testUserId, BigDecimal.valueOf(250));
+
+        // Then
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(result.getMessage()).isEqualTo("enough balance");
+    }
+
+    @Test
+    @DisplayName("Should return failure when wallet balance is lower than requested margin")
+    void checkBalance_balanceLowerThanMargin_returnsInsufficientBalance() {
+        // Given
+        when(walletRepository.findByUserId(testUserId)).thenReturn(Optional.of(testWallet));
+
+        // When
+        CheckBalanceResponse result = walletService.checkBalance(testUserId, BigDecimal.valueOf(1000.01));
+
+        // Then
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getMessage()).isEqualTo("Insufficient balance");
+    }
+
+    @Test
+    @DisplayName("Should throw AppException when checking balance for missing wallet")
+    void checkBalance_walletNotFound_throwsAppException() {
+        // Given
+        when(walletRepository.findByUserId(testUserId)).thenReturn(Optional.empty());
+
+        // When / Then
+        assertThatThrownBy(() -> walletService.checkBalance(testUserId, BigDecimal.ONE))
+                .isInstanceOf(AppException.class)
+                .satisfies(exception -> assertThat(((AppException) exception).getErrorCode())
+                        .isEqualTo(ErrorCode.HAS_NOT_WALLET));
     }
 }

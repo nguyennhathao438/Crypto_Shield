@@ -54,9 +54,7 @@ public class ClosePositionService {
         BigDecimal closeRatio = request.getClosedQuantity().divide(position.getQuantity(), 8, RoundingMode.HALF_UP);
         BigDecimal releasedMargin = position.getMargin()
                 .multiply(closeRatio).setScale(8, RoundingMode.HALF_UP);
-
-        BigDecimal amountToReturn = releasedMargin.add(realizedPnl);
-        wallet.unlockMargin(amountToReturn,realizedPnl);
+        wallet.unlockMargin(releasedMargin,realizedPnl);
         walletRepository.save(wallet);
 
         if (fullyClosed) {
