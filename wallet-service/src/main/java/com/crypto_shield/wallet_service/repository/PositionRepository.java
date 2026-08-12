@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 @Repository
 public interface PositionRepository extends JpaRepository<Position, UUID> {
-    List<Position> findByWalletId(UUID walletId);
+    List<Position> findByStatus(PositionStatus status);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Position p WHERE p.walletId = :walletId AND p.symbol = :symbol " +
             "AND p.side = :side AND p.status = :status")

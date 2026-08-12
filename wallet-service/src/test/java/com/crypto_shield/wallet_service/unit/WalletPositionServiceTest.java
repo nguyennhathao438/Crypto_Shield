@@ -1,5 +1,6 @@
 package com.crypto_shield.wallet_service.unit;
 
+import com.crypto_shield.wallet_service.component.PositionTriggerCommandProducer;
 import com.crypto_shield.wallet_service.dto.request.OpenPositionRequest;
 import com.crypto_shield.wallet_service.dto.response.OpenPositionResponse;
 import com.crypto_shield.wallet_service.entity.Position;
@@ -39,6 +40,9 @@ class WalletPositionServiceTest {
     @Mock
     private PositionRepository positionRepository;
 
+    @Mock
+    private PositionTriggerCommandProducer positionTriggerCommandProducer;
+
     private WalletPositionService walletPositionService;
     private UUID userId;
     private UUID walletId;
@@ -46,7 +50,7 @@ class WalletPositionServiceTest {
 
     @BeforeEach
     void setUp() {
-        walletPositionService = new WalletPositionService(walletRepository, positionRepository);
+        walletPositionService = new WalletPositionService(walletRepository, positionRepository,positionTriggerCommandProducer);
         userId = UUID.randomUUID();
         walletId = UUID.randomUUID();
         wallet = Wallet.builder()

@@ -22,13 +22,21 @@ spring:
       key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       properties:
-        spring.json.type.mapping: priceEvent:com.crypto_shield.wallet_service.dto.PriceEvent
+        spring.json.type.mapping: priceEvent:com.crypto_shield.wallet_service.dto.PriceEvent,triggerFired:com.crypto_shield.wallet_service.dto.PositionTriggerFiredEvent
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
         spring.json.trusted.packages: "com.crypto_shield.*"
-        spring.json.value.default.type: com.crypto_shield.wallet_service.dto.PriceEvent
+        spring.json.use.type.headers: true
 server:
   port: 8081
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
 eureka:
   instance:
     prefer-ip-address: true

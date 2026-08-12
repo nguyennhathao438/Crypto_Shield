@@ -2,6 +2,7 @@ package com.crypto_shield.wallet_service.service;
 
 import com.crypto_shield.wallet_service.config.PriceCache;
 import com.crypto_shield.wallet_service.config.SymbolDemandPublisher;
+import com.crypto_shield.wallet_service.dto.PositionTrigger;
 import com.crypto_shield.wallet_service.dto.response.PositionResponse;
 import com.crypto_shield.wallet_service.entity.Position;
 import com.crypto_shield.wallet_service.entity.Wallet;
@@ -134,5 +135,19 @@ public class PositionService {
 
 
         return toPositionResponse(position);
+    }
+    public List<PositionTrigger> getActiveTriggers() {
+        return positionRepository.findByStatus(PositionStatus.OPEN)
+                .stream()
+                .map(this::toDto)
+                .toList();
+    }
+    private PositionTrigger toDto(Position position) {
+        return PositionTrigger.builder()
+                .positionId(position.getId())
+                .symbol(position.getSymbol())
+                .triggerPrice(position.getLiquidationPrice())
+                .side(position.getSide())
+                .build();
     }
 }

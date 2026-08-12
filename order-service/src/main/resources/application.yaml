@@ -16,6 +16,9 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: triggerFired:com.cryptoshield.order_service.dto.PositionTriggerFiredEvent
+        spring.json.add.type.headers: true
     consumer:
       group-id: order-service
       key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer

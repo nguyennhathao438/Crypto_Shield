@@ -1,5 +1,6 @@
 package com.crypto_shield.wallet_service.controller;
 
+import com.crypto_shield.wallet_service.dto.PositionTrigger;
 import com.crypto_shield.wallet_service.dto.request.ClosePositionRequest;
 import com.crypto_shield.wallet_service.dto.request.OpenPositionRequest;
 import com.crypto_shield.wallet_service.dto.response.ClosePositionResponse;
@@ -47,5 +48,8 @@ public class PositionController {
     public ResponseEntity<PositionResponse> getById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(positionService.getPositionById(id));
     }
-
+    @GetMapping("/active-triggers")
+    public ResponseEntity<List<PositionTrigger>> getActiveTriggers() {
+        return ResponseEntity.ok(positionService.getActiveTriggers());
+    }
 }
