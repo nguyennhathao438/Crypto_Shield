@@ -35,3 +35,26 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka}
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0     # dev: 1.0 (100%). Production giảm còn 0.1 (10%)
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: http://jaeger:4318/v1/traces
+  otlp:
+    metrics:
+      export:
+        enabled: false
+
+  logging:
+    export:
+      otlp:
+        endpoint: http://jaeger:4318/v1/logs
+logging:
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+    include-application-name: false

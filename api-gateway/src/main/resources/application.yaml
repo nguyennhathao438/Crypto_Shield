@@ -3,6 +3,8 @@ server:
 spring:
   application:
     name: api-gateway
+  reactor:
+    context-propagation: auto
   cloud:
     gateway:
       discovery:
@@ -31,13 +33,12 @@ spring:
     redis:
       host: ${SPRING_REDIS_HOST:localhost}
       port: ${SPRING_REDIS_PORT:6379}
+
+
 logging:
-  level:
-    org:
-      springframework:
-        cloud.gateway: TRACE
-        web.servlet.function: TRACE
-        security: DEBUG
+  pattern:
+    correlation: "[${spring.application.name:},%X{traceId:-},%X{spanId:-}] "
+    include-application-name: false
 
 eureka:
   client:
@@ -48,5 +49,23 @@ management:
     web:
       exposure:
         include: gateway
+  tracing:
+    sampling:
+      probability: 1.0     # dev: 1.0 (100%). Production giảm còn 0.1 (10%)
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: http://jaeger:4318/v1/traces
+  otlp:
+    metrics:
+      export:
+        enabled: false
+
+  logging:
+    export:
+      otlp:
+        endpoint: http://jaeger:4318/v1/logs
+
 jwt:
   signerKey: ${JWT_SIGNER_KEY}
