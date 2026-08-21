@@ -17,18 +17,44 @@ spring:
               uri: lb://USER-SERVICE
               predicates:
                 - Path=/api/auth/**,/api/users/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 1
+                    redis-rate-limiter.burstCapacity: 5
+                    redis-rate-limiter.requestedTokens: 5
+                    key-resolver: "#{@ipKeyResolver}"
             - id: wallet-service
               uri: lb://WALLET-SERVICE
               predicates:
                 - Path=/api/wallet/**,/internal/position/stream/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 2
+                    redis-rate-limiter.burstCapacity: 5
+                    key-resolver: "#{@userKeyResolver}"
             - id: order-service
               uri: lb://ORDER-SERVICE
               predicates:
                 - Path=/api/order/**,/api/order-conditions/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 1
+                    redis-rate-limiter.burstCapacity: 10
+                    redis-rate-limiter.requestedTokens: 10
+                    key-resolver: "#{@userKeyResolver}"
             - id: market-data-service
               uri: lb://MARKET-DATA-SERVICE
               predicates:
                 - Path=/api/klines/**,/api/price/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 20
+                    redis-rate-limiter.burstCapacity: 80
+                    key-resolver: "#{@userKeyResolver}"
   data:
     redis:
       host: ${SPRING_REDIS_HOST:localhost}
