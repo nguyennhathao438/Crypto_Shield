@@ -1,0 +1,328 @@
+{
+  "info": {
+    "_postman_id": "af20a603-f62f-4613-b6bc-fb5b09ecc3b2",
+    "name": "Crypto app",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48413879",
+    "_collection_link": "https://go.postman.co/collection/48413879-af20a603-f62f-4613-b6bc-fb5b09ecc3b2?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "user",
+      "item": [
+        {
+          "name": "login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\":\"admin@gmail.com\",\r\n    \"password\": \"123456abc\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "order",
+      "item": [
+        {
+          "name": "get order",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"symbol\": \"BTCUSDT\",\r\n  \"type\": \"MARKET\",\r\n  \"side\": \"SELL\",\r\n  \"quantity\": 0.02,\r\n  \"margin\": 6645,\r\n  \"price\":66450,\r\n  \"leverage\": 20\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8082/api/order/22222222-2222-2222-2222-222222222222",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8082",
+              "path": [
+                "api",
+                "order",
+                "22222222-2222-2222-2222-222222222222"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "check wallet",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/internal/wallets/balance/22222222-2222-2222-2222-222222222222?margin=10",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "internal",
+                "wallets",
+                "balance",
+                "22222222-2222-2222-2222-222222222222"
+              ],
+              "query": [
+                {
+                  "key": "margin",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "close order",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "create order condition",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "delete limit order",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/api/order/55dc2781-608f-4e7c-a844-023f9fe108b6",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "order",
+                "55dc2781-608f-4e7c-a844-023f9fe108b6"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete order condition",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "22222222-2222-2222-2222-222222222222",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8000/api/order-conditions/202eeff7-ca07-40f2-939f-7cdce5a240e7",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "order-conditions",
+                "202eeff7-ca07-40f2-939f-7cdce5a240e7"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "market-data",
+      "item": [
+        {
+          "name": "klines",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "stream price",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "get current price",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "wallet",
+      "item": [
+        {
+          "name": "create position",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"userId\": \"22222222-2222-2222-2222-222222222222\",\r\n  \"symbol\": \"BTCUSDT\",\r\n  \"type\": \"MARKET\",\r\n  \"side\": \"SELL\",\r\n  \"quantity\": 0.01,\r\n  \"margin\": 30.25,\r\n  \"price\": 60500.00,\r\n  \"leverage\": 20\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8081/internal/position/open",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "internal",
+                "position",
+                "open"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "check wallet",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"userId\": \"22222222-2222-2222-2222-222222222222\",\r\n  \"symbol\": \"BTCUSDT\",\r\n  \"type\": \"MARKET\",\r\n  \"side\": \"SELL\",\r\n  \"quantity\": 0.01,\r\n  \"margin\": 30.25,\r\n  \"price\": 60500.00,\r\n  \"leverage\": 20\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/internal/wallets/balance/22222222-2222-2222-2222-222222222222?margin=10",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8081",
+              "path": [
+                "internal",
+                "wallets",
+                "balance",
+                "22222222-2222-2222-2222-222222222222"
+              ],
+              "query": [
+                {
+                  "key": "margin",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "my position",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "get position by id",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "New Request",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ]
+}

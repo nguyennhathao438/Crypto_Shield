@@ -184,3 +184,7 @@ docker-compose down -v
 | `Cannot connect to the Docker daemon` | Docker Desktop chưa mở | Mở Docker Desktop, đợi icon chuyển sang trạng thái running |
 | Port đã được sử dụng (`port is already allocated`) | Có service khác đang chiếm port | Đổi port trong `docker-compose.yaml` hoặc tắt service đang chiếm port đó |
 | Service không đăng ký được với discovery-server | Service khởi động trước khi `discovery-server` sẵn sàng | Đợi vài giây rồi thử lại, hoặc kiểm tra `depends_on` trong `docker-compose.yaml` |
+
+## API Documentation
+
+Xem chi tiết tại [API.md](API.md)
